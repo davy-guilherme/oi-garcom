@@ -12,7 +12,7 @@ const PORT = 3000;
 
 app.use(bodyParser.json());
 app.use(express.static('public'));
-app.use('/painel', express.static(path.join(__dirname, 'views')));
+app.use('/painel', express.static(path.join(__dirname, 'public')));
 
 // Rota protegida com JWT
 function authenticateJWT(req, res, next) {
