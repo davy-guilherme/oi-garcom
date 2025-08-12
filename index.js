@@ -5,6 +5,8 @@ const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const calls = [];
 const mqttHandler = require('./mqttHandler');
+const socketIo = require('socket.io');
+const http = require('http'); // Importar o http para criar o servidor
 const JWT_SECRET = 'segredo-super-seguro';
 
 const app = express();
@@ -54,7 +56,33 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'views/index.html'));
 });
 
-app.listen(PORT, () => {
+
+// **Criar servidor HTTP manualmente para usar com socket.io**
+const server = http.createServer(app);
+const io = socketIo(server);
+
+// Ao conectar um cliente via WebSocket
+io.on('connection', (socket) => {
+  console.log('Cliente WebSocket conectado:', socket.id);
+
+  // Enviar todas as chamadas atuais para o cliente que acabou de conectar
+  socket.emit('todasChamadas', calls);
+
+  socket.on('disconnect', () => {
+    console.log('Cliente desconectado:', socket.id);
+  });
+});
+
+// Quando o mqttHandler receber uma nova chamada
+mqttHandler.on('novaChamada', (data) => {
+  calls.push(data);
+
+  // Emitir para todos os clientes conectados a nova chamada em tempo real
+  io.emit('novaChamada', data);
+});
+
+
+server.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
 

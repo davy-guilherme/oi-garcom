@@ -14,40 +14,46 @@
 <body>
   <h1 class="mb-4">Chamadas de Garçom</h1>
   <div id="chamadas" class="row"></div>
-
+   
+  <!-- Importa o cliente socket.io automaticamente servido pelo servidor -->
+  <script src="/socket.io/socket.io.js"></script>
   <script>
-    async function carregarChamadas() {
-      try {
-        const resposta = await fetch('/api/chamadas', {
-          headers: {
-            Authorization: 'Bearer SEU_TOKEN_AQUI' // Substitua pelo JWT
-          }
-        });
-        const chamadas = await resposta.json();
-        const container = document.getElementById('chamadas');
-        container.innerHTML = '';
+    // Conecta ao WebSocket
+    const socket = io();
 
-        chamadas.reverse().forEach(chamada => {
-          const div = document.createElement('div');
-          div.className = 'col-md-4 mesa-card';
-          div.innerHTML = `
-            <div class="card border-danger">
-              <div class="card-body">
-                <h5 class="card-title text-danger">Mesa: ${chamada.mesa}</h5>
-                <p class="card-text"><strong>Hora:</strong> ${new Date(chamada.timestamp).toLocaleTimeString()}</p>
-                <p class="card-text"><strong>Mensagem:</strong> ${chamada.payload}</p>
-              </div>
+    const container = document.getElementById('chamadas');
+    let calls = [];
+
+    // Renderizar as chamadas na tela
+    function renderizarChamadas(chamadas) {
+      container.innerHTML = '';
+      chamadas.slice().reverse().forEach(chamada => {
+        const div = document.createElement('div');
+        div.className = 'col-md-4 mesa-card';
+        div.innerHTML = `
+          <div class="card border-danger">
+            <div class="card-body">
+              <h5 class="card-title text-danger">Mesa: ${chamada.mesa}</h5>
+              <p class="card-text"><strong>Hora:</strong> ${new Date(chamada.timestamp).toLocaleTimeString()}</p>
+              <p class="card-text"><strong>Mensagem:</strong> ${chamada.payload}</p>
             </div>
-          `;
-          container.appendChild(div);
-        });
-      } catch (err) {
-        alert('Erro ao carregar chamadas. Verifique o token.');
-      }
+          </div>
+        `;
+        container.appendChild(div);
+      });
     }
 
-    setInterval(carregarChamadas, 2000); // Atualiza a cada 3 segundos
-    carregarChamadas();
+    // Quando conectar, receber todas as chamadas existentes
+    socket.on('todasChamadas', (chamadasExistentes) => {
+      calls = chamadasExistentes;
+      renderizarChamadas(calls);
+    });
+
+    // Quando receber uma nova chamada em tempo real
+    socket.on('novaChamada', (novaChamada) => {
+      calls.push(novaChamada);
+      renderizarChamadas(calls);
+    });
   </script>
 </body>
 </html>
