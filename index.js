@@ -16,17 +16,8 @@ app.use(bodyParser.json());
 app.use(express.static('public'));
 app.use('/painel', express.static(path.join(__dirname, 'public')));
 
-// Rota protegida com JWT
+// Rota protegida com JWT (placeholder)
 function authenticateJWT(req, res, next) {
-  // const authHeader = req.headers.authorization;
-  // if (!authHeader) return res.sendStatus(401);
-
-  // const token = authHeader.split(' ')[1];
-  // jwt.verify(token, JWT_SECRET, (err, user) => {
-  //   if (err) return res.sendStatus(403);
-  //   req.user = user;
-  //   next();
-  // });
   next();
 }
 
@@ -46,68 +37,50 @@ app.get('/api/chamadas', authenticateJWT, (req, res) => {
   res.json(calls);
 });
 
-// Recebe chamadas via MQTT
-mqttHandler.on('novaChamada', (data) => {
-  calls.push(data);
-});
-
-// Painel web básico (sem login)
+// Página inicial
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'views/index.html'));
 });
 
-
-// **Criar servidor HTTP manualmente para usar com socket.io**
+// Criar servidor HTTP manualmente para usar com socket.io
 const server = http.createServer(app);
 const io = socketIo(server);
 
-// Ao conectar um cliente via WebSocket
+// Conexão WebSocket
 io.on('connection', (socket) => {
   console.log('Cliente WebSocket conectado:', socket.id);
 
-  // Enviar todas as chamadas atuais para o cliente que acabou de conectar
+  // Enviar todas as chamadas atuais
   socket.emit('todasChamadas', calls);
+
+  // Receber pedido de exclusão de chamada
+  socket.on('excluirChamada', (index) => {
+    const idxOriginal = calls.length - 1 - index; // corrigir ordem invertida
+    if (calls[idxOriginal]) {
+      calls.splice(idxOriginal, 1);
+      io.emit('atualizarChamadas', calls);
+    }
+  });
 
   socket.on('disconnect', () => {
     console.log('Cliente desconectado:', socket.id);
   });
 });
 
-// Quando o mqttHandler receber uma nova chamada
+// Receber novas chamadas via MQTT
 mqttHandler.on('novaChamada', (data) => {
-  calls.push(data);
-
-  // Emitir para todos os clientes conectados a nova chamada em tempo real
-  io.emit('novaChamada', data);
+  // Verifica se já foi chamado
+  const existe = calls.some(chamada => chamada.mesa === data.mesa);
+  
+  if (!existe) {
+    calls.push(data);
+    io.emit('novaChamada', data);
+  } else {
+    console.log(`Mesa ${data.mesa} já está na lista de chamadas.`);
+  }
 });
 
-
+// Iniciar servidor
 server.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
-
-
-
-// console.log("teste");
-
-// // mqttHandler.js
-// const mqtt = require('mqtt');
-// const EventEmitter = require('events');
-
-// const eventEmitter = new EventEmitter();
-
-// const client = mqtt.connect('mqtt://broker.hivemq.com'); // Ou seu broker local
-
-// client.on('connect', () => {
-//   console.log('MQTT conectado');
-//   client.subscribe('chamar_garcom/#'); // Ex: chamar_garcom/mesa1
-// });
-
-// client.on('message', (topic, message) => {
-//   const mesa = topic.split('/')[1];
-//   const payload = message.toString();
-//   console.log(`Chamada recebida da ${mesa}: ${payload}`);
-//   eventEmitter.emit('novaChamada', { mesa, payload, timestamp: Date.now() });
-// });
-
-// module.exports = eventEmitter;

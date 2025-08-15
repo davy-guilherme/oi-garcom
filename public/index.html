@@ -27,7 +27,7 @@
     // Renderizar as chamadas na tela
     function renderizarChamadas(chamadas) {
       container.innerHTML = '';
-      chamadas.slice().reverse().forEach(chamada => {
+      chamadas.slice().reverse().forEach((chamada, index) => {
         const div = document.createElement('div');
         div.className = 'col-md-4 mesa-card';
         div.innerHTML = `
@@ -36,11 +36,21 @@
               <h5 class="card-title text-danger">Mesa: ${chamada.mesa}</h5>
               <p class="card-text"><strong>Hora:</strong> ${new Date(chamada.timestamp).toLocaleTimeString()}</p>
               <p class="card-text"><strong>Mensagem:</strong> ${chamada.payload}</p>
+              <button class="btn btn-primary" data-index="${index}">Excluir</button>
             </div>
           </div>
         `;
         container.appendChild(div);
       });
+
+      // Adicionar eventos de clique nos botões de exclusão
+      container.querySelectorAll('button[data-index]').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const index = e.target.getAttribute('data-index');
+          socket.emit('excluirChamada', parseInt(index));
+        });
+      });
+      
     }
 
     // Quando conectar, receber todas as chamadas existentes
@@ -54,6 +64,12 @@
       calls.push(novaChamada);
       renderizarChamadas(calls);
     });
+
+    socket.on('atualizarChamadas', (chamadasAtualizadas) => {
+      calls = chamadasAtualizadas;
+      renderizarChamadas(calls);
+    });
+    
   </script>
 </body>
 </html>
