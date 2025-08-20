@@ -9,3 +9,6 @@ node_modules/
 
 # Ignorar configurações do editor
 .vscode/
+
+# Arquivos específicos do sistema
+.DS_Store
