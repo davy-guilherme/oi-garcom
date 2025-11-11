@@ -6,12 +6,13 @@ function initMQTT(io, callController) {
 
     client.on('connect', () => {
         console.log('MQTT conectado');
-        client.subscribe('chamar_garcom/#');
+        client.subscribe('chamar_garcom/#'); //change to call
     });
 
     client.on('message', (topic, message) => {
         const mesa = topic.split('/')[1];
         const payload = message.toString();
+        console.log("-------------------------")
         console.log(`Chamada recebida da ${mesa}: ${payload}`);
 
         callController.novaChamada({ mesa, payload }, io);

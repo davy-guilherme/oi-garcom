@@ -1,0 +1,75 @@
+<!-- views/index.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel de Chamadas</title>
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"> -->
+    <link href="./bootstrap-5.3.7-dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body { padding: 2rem; }
+    .mesa-card { margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <h1 class="mb-4">Chamadas de Garçom</h1>
+  <div id="chamadas" class="row"></div>
+   
+  <!-- Importa o cliente socket.io automaticamente servido pelo servidor -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // Conecta ao WebSocket
+    const socket = io();
+
+    const container = document.getElementById('chamadas');
+    let calls = [];
+
+    // Renderizar as chamadas na tela
+    function renderizarChamadas(chamadas) {
+      container.innerHTML = '';
+      chamadas.slice().reverse().forEach((chamada, index) => {
+        const div = document.createElement('div');
+        div.className = 'col-md-4 col-sm-6 col-xs-12 mesa-card';
+        div.innerHTML = `
+          <div class="card border-danger">
+            <div class="card-body">
+              <h5 class="card-title text-danger">Mesa: ${chamada.mesa}</h5>
+              <p class="card-text"><strong>Hora:</strong> ${new Date(chamada.timestamp).toLocaleTimeString()}</p>
+              <p class="card-text"><strong>Mensagem:</strong> ${chamada.payload}</p>
+              <button class="btn btn-primary" data-index="${index}">Excluir</button>
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+
+      // Adicionar eventos de clique nos botões de exclusão
+      container.querySelectorAll('button[data-index]').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const index = e.target.getAttribute('data-index');
+          socket.emit('excluirChamada', parseInt(index));
+        });
+      });
+      
+    }
+
+    // Quando conectar, receber todas as chamadas existentes
+    socket.on('todasChamadas', (chamadasExistentes) => {
+      calls = chamadasExistentes;
+      renderizarChamadas(calls);
+    });
+
+    // Quando receber uma nova chamada em tempo real
+    socket.on('novaChamada', (novaChamada) => {
+      calls.push(novaChamada);
+      renderizarChamadas(calls);
+    });
+
+    socket.on('atualizarChamadas', (chamadasAtualizadas) => {
+      calls = chamadasAtualizadas;
+      renderizarChamadas(calls);
+    });
+    
+  </script>
+</body>
+</html>
