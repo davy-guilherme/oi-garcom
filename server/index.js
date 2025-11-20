@@ -1,11 +1,13 @@
-// app.js
+// index.js
 const express = require('express');
 const bodyParser = require('body-parser');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 
 const callRoutes = require('./routes/callRoutes');
+const authRoutes = require('./routes/authRoutes');
 const callController = require('./controllers/callController');
 const mqttService = require('./services/mqttService');
 const socketHandler = require('./socket/socketHandler');
@@ -16,8 +18,14 @@ const io = socketIo(server);
 const PORT = 3000;
 
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(cookieParser());
+
+// ROTAS DEVEM VIR ANTES DO STATIC
+app.use("/auth", authRoutes);
 app.use('/calls', callRoutes);
+
+// STATIC POR ÚLTIMO
+app.use(express.static(path.join(__dirname, 'public')));
 
 const calls = [];
 
@@ -27,7 +35,7 @@ mqttService.initMQTT(io, callController);
 // Inicializa WebSocket
 socketHandler(io);
 
-// Redireciona a rota raiz para /call
+// Redireciona a rota raiz para /calls
 app.get('/', (req, res) => {
   res.redirect('/calls');
 });

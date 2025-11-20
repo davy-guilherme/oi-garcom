@@ -8,12 +8,17 @@ function socketHandler(io) {
         socket.emit('todasChamadas', callModel.getCalls());
 
         // Receber pedido de exclusão de chamada
-        socket.on('excluirChamada', (index) => {
+        socket.on('excluirChamada', (id) => {
             const calls = callModel.getCalls();
-            const idxOriginal = calls.length - 1 - index; // corrigir ordem invertida
-            if (calls[idxOriginal]) {
-                calls.splice(idxOriginal, 1);
+            // encontra o índice pelo id
+            const idx = calls.findIndex(c => String(c.id) === String(id) || String(c.timestamp) === String(id));
+
+            if (idx !== -1) {
+                calls.splice(idx, 1);
+
                 io.emit('atualizarChamadas', calls);
+            } else {
+                console.log('chamada não encontrada para id=', id);
             }
         });
 

@@ -5,6 +5,7 @@ let calls = [];
 async function createCall(call) {
     const exists = calls.some(c => c.mesa === call.mesa);
     if (!exists) {
+
         // add Call to database
         calls.push(call);
         try {

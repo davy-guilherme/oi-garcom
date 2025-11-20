@@ -5,7 +5,8 @@ async function novaChamada(data, io) {
     const chamadaComData = {
         ...data,
         // timestamp: new Date().toISOString() // formato ISO (ex: 2025-08-19T22:30:00.000Z)
-        timestamp: new Date().toISOString().slice(0, 19).replace('T', ' ')
+        timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),
+        id: Date.now().toString() + Math.random().toString(36).substring(2, 9)
     };
     console.log(chamadaComData)
 

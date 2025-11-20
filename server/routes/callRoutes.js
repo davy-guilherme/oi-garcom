@@ -12,8 +12,10 @@ router.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../views/index.html'));
     // res.send('Lista de chamadas');
 });
-// app.get('/', (req, res) => {
-//   res.sendFile(path.join(__dirname, '../views/index.html'));
-// });
+
+router.get('/admin', authenticateJWT, (req, res) => {
+  res.sendFile(path.join(__dirname, '../views/calls-admin.html'));
+    // res.send('Lista de chamadas');
+});
 
 module.exports = router;

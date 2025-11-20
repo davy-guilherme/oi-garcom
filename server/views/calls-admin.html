@@ -1,0 +1,164 @@
+<!-- views/index.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Oi Garçom | ADM - Painel de Chamadas</title>
+  <link href="/bootstrap-5.3.7-dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background-color: #f8f9fa;
+      padding: 1.6rem;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    main {
+      flex: 1;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.8rem;
+    }
+    .toolbar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 2rem;
+    }
+    .mesa-card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .mesa-card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+    }
+    .no-calls {
+      text-align: center;
+      color: #6c757d;
+      margin-top: 3rem;
+    }
+    footer {
+      margin-top: 3rem;
+      border-top: 1px solid #dee2e6;
+      padding-top: 1rem;
+      text-align: center;
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <main>
+    <!-- Cabeçalho original NÃO FOI ALTERADO -->
+    <div class="header">
+      <h1 class="text-danger fw-bold">
+        <i class="bi bi-bell-fill me-2"></i>ADM - Chamadas de Garçom
+      </h1>
+      <span class="badge bg-secondary" id="totalChamadas">0 chamadas</span>
+    </div>
+
+    <!-- Linha de baixo — botão de logout -->
+    <div class="toolbar">
+      <button class="btn btn-outline-danger" id="logoutBtn">
+        <i class="bi bi-box-arrow-right"></i> Sair
+      </button>
+    </div>
+
+    <div id="chamadas" class="row g-3"></div>
+    <p id="semChamadas" class="no-calls d-none">
+      <i class="bi bi-emoji-smile"></i> Nenhuma chamada no momento!
+    </p>
+  </main>
+
+  <footer>
+    <p>Desenvolvido por <strong>Davy Batista</strong> na <strong>Fatec Santo André</strong> como Projeto Integrador I.</p>
+    <p>Orientação do professor <strong>Carlos Morioka</strong>.</p>
+  </footer>
+
+  <!-- Socket.io -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script>
+    // ======================================
+    //  BOTÃO DE LOGOUT (COOKIE HTTPONLY)
+    // ======================================
+    document.getElementById("logoutBtn").onclick = async () => {
+      await fetch("/auth/logout", { method: "POST" });
+      window.location.href = "/auth/login";
+    };
+
+    const socket = io();
+    const container = document.getElementById('chamadas');
+    const totalChamadas = document.getElementById('totalChamadas');
+    const semChamadas = document.getElementById('semChamadas');
+    let calls = [];
+
+    function renderizarChamadas(chamadas) {
+      container.innerHTML = '';
+      if (chamadas.length === 0) {
+        semChamadas.classList.remove('d-none');
+        totalChamadas.textContent = 'Sem chamadas';
+        return;
+      } else {
+        semChamadas.classList.add('d-none');
+      }
+
+      chamadas.slice().forEach((chamada, index) => {
+        const hora = new Date(chamada.timestamp).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        const div = document.createElement('div');
+        div.className = 'col-lg-4 col-md-6 col-sm-12';
+
+        div.innerHTML = `
+          <div class="card border-danger mesa-card">
+            <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+              <span><strong>Mesa ${chamada.mesa}</strong></span>
+              <small>${hora}</small>
+              <p>${chamada.id}</p>
+            </div>
+            <div class="card-body">
+              <p class="card-text mb-3">${chamada.payload}</p>
+              <button class="btn btn-outline-secondary w-100" data-index="${chamada.id}">
+                Atendido
+              </button>
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+
+      totalChamadas.textContent = `${chamadas.length} chamada${chamadas.length > 1 ? 's' : ''}`;
+
+      container.querySelectorAll('button[data-index]').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const index = e.target.closest('button').getAttribute('data-index');
+          socket.emit('excluirChamada', index);
+        });
+      });
+    }
+
+    socket.on('todasChamadas', (chamadasExistentes) => {
+      calls = chamadasExistentes;
+      renderizarChamadas(calls);
+    });
+
+    socket.on('novaChamada', (novaChamada) => {
+      calls.push(novaChamada);
+      renderizarChamadas(calls);
+    });
+
+    socket.on('atualizarChamadas', (chamadasAtualizadas) => {
+      calls = chamadasAtualizadas;
+      renderizarChamadas(calls);
+    });
+  </script>
+
+  <script src="/bootstrap-5.3.7-dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
