@@ -1,22 +1,22 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 
-// --- CONFIGURAÇÕES ---
+// --- CONFIGURACOES ---
 const char* ssid = "Quintal";
 const char* password = "quintal@2025";
 const char* mqtt_server = "quintal.local";
 const int mqtt_port = 1883;
-const char* mqtt_topic = "chamar_garcom/2";
+const char* mqtt_topic = "chamar_garcom/1";
 
 // --- OBJETOS ---
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-// --- PINO DO BOTÃO ---
+// --- PINO DO BOTAO ---
 const int botaoPin = 22;
 int ultimoEstadoBotao = HIGH;
 
-// --- FUNÇÕES ---
+// --- FUNCOES ---
 void setup_wifi() {
   delay(10);
   Serial.println();
