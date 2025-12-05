@@ -2,6 +2,9 @@
 #include <PubSubClient.h>
 
 // --- CONFIGURACOES ---
+// const char* ssid = "2GFelicidade";
+// const char* password = "MiraMaria";
+// const char* mqtt_server = "18.191.43.190";
 const char* ssid = "Quintal";
 const char* password = "quintal@2025";
 const char* mqtt_server = "quintal.local";
@@ -43,11 +46,11 @@ void reconnect() {
     Serial.print(":");
     Serial.println(mqtt_port);
 
-    if (client.connect("ESP32Client")) {
+    if (client.connect("ESP32Client01")) {
       Serial.println("Conectado ao MQTT!");
     } else {
       int state = client.state();
-      Serial.print("Falhou, rc=");
+      Serial.print("Falhou, code=");
       Serial.print(state);
       Serial.println(" — tentando novamente em 5 segundos");
 

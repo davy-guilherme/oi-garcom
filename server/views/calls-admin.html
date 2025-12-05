@@ -55,7 +55,7 @@
     <!-- Cabeçalho original NÃO FOI ALTERADO -->
     <div class="header">
       <h1 class="text-danger fw-bold">
-        <i class="bi bi-bell-fill me-2"></i>ADM - Chamadas de Garçom
+        <i class="bi bi-bell-fill me-2"></i>Solicitação de atendimento
       </h1>
       <span class="badge bg-secondary" id="totalChamadas">0 chamadas</span>
     </div>
@@ -119,13 +119,12 @@
           <div class="card border-danger mesa-card">
             <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
               <span><strong>Mesa ${chamada.mesa}</strong></span>
-              <small>${hora}</small>
-              <p>${chamada.id}</p>
+              <small></small>
             </div>
             <div class="card-body">
-              <p class="card-text mb-3">${chamada.payload}</p>
+              <p class="card-text mb-3"></p>
               <button class="btn btn-outline-secondary w-100" data-index="${chamada.id}">
-                Atendido
+                Atender
               </button>
             </div>
           </div>

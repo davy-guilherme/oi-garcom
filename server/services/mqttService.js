@@ -1,8 +1,8 @@
 const mqtt = require('mqtt');
 
 function initMQTT(io, callController) {
+    // const client = mqtt.connect('mqtt://18.191.43.190');
     const client = mqtt.connect('mqtt://quintal.local:1883');
-    // const client = mqtt.connect("mqtt://test.mosquitto.org")
 
     client.on('connect', () => {
         console.log('MQTT conectado');
